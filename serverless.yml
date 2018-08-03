@@ -1,0 +1,125 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# For full config options, check the docs:
+#    docs.serverless.com
+
+service: todo
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+# extract stage either from command line or in this file
+custom:
+  stage: ${opt:stage, self:provider.stage}
+
+# get option variables from options.yml file
+  options: ${file(options.yml):${self:custom.stage}}
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# get env variables from env.yml file
+  environment: ${file(env.yml):${self:custom.stage}}
+
+# you can add statements to the Lambda function's IAM Role here
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+        - "s3:GetObject"
+        - "s3:PutObject"
+        - "s3:DeleteObject"
+      Resource:
+        - ${self:custom.options.bucketArn}
+        - ${self:custom.options.bucketArn}/*
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:Query"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:DeleteItem"
+      Resource:
+        - ${self:custom.options.tableArn}
+        - ${self:custom.options.tableArn}/*
+
+# OR use existing preconfig role
+# role: ${self:custom.options.lambdaRoleArn}
+
+# you can add packaging information here
+package:
+  exclude:
+    - .git
+    - .gitignore
+    - options.yml
+    - README.md
+    - LICENSE
+
+functions:
+  tasks_get:
+    handler: handler.tasks_get
+    events:
+      - http:
+          path: tasks
+          method: get
+          cors: true
+          # authorizer: ${self:custom.options.userPoolArn}
+      - http:
+          path: tasks/{id}
+          method: get
+          cors: true
+          # authorizer: ${self:custom.options.userPoolArn}
+  tasks_post:
+    handler: handler.tasks_post
+    events:
+      - http:
+          path: tasks
+          method: post
+          cors: true
+          # authorizer: ${self:custom.options.userPoolArn}
+  tasks_delete:
+    handler: handler.tasks_delete
+    events:
+      - http:
+          path: tasks/{id}
+          method: delete
+          cors: true
+          # authorizer: ${self:custom.options.userPoolArn}
+  tasks_put:
+    handler: handler.tasks_put
+    events:
+      - http:
+          path: tasks/{id}
+          method: put
+          cors: true
+          # authorizer: ${self:custom.options.userPoolArn}
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.options.bucketName}
+    table:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.options.tableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: uid
+            AttributeType: S
+        KeySchema:
+          - AttributeName: uid
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: ${self:custom.options.tableReadUnits}
+          WriteCapacityUnits: ${self:custom.options.tableWriteUnits}
