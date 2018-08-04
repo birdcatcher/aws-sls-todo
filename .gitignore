@@ -1,3 +1,6 @@
+# Serverless build
+.serverless/
+
 # Logs
 logs
 *.log

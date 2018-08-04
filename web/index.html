@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" type="image/x-icon" href="https://static.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+  <link rel="mask-icon" type="" href="https://static.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" />
+  <title>AWS Serverless ToDo</title>
+</head>
+
+<body translate="no" >
+  <div id="app">
+  <div>
+    <h4>Create New User</h4>
+    <div>
+      <input type="text" placeholder="username" v-model="newUserName"/>
+      <input type="password" placeholder="password" v-model="newUserPassword"/>
+      <input type="text" placeholder="email" v-model="newUserEmail"/>
+      <button @click="newUser()">New User</button>
+    </div>
+  </div>
+  
+  <div>
+    <h4>Authenticate User (May require new password for Admin created users.)</h4>
+    <div>
+      <input type="text" placeholder="username" v-model="authUserName"/>
+      <input type="password" placeholder="password" v-model="authPassword"/>
+      <button @click="authUser()">Authenticate</button>
+    </div>
+    <div v-show="idToken">
+      <p>ID Token (copied to HTTP header Authorization):</p>
+      <p >{{ idToken }}</p>
+      <p>Decoded ID Token:</p>
+      <p>{{ decodedIdToken }}</p>
+    </div>
+  </div>
+  
+  <div>
+    <h4>API Gateway (protected by UserPool authorization)</h4>
+    <div>
+      <input type="text" placeholder="API URL" size="70" v-model="apiUrl"/>
+      <button @click="invokeAPI()">Submit</button>
+      <p>{{ apiResponse }}</p>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.8/vue.js"></script>
+<script src='https://rawgit.com/bitwiseshiftleft/sjcl/master/sjcl.js'></script>
+<script src='https://cdn.rawgit.com/aws/amazon-cognito-identity-js/e1193e2a/dist/aws-cognito-sdk.js'></script>
+<script src='https://rawgit.com/aws/amazon-cognito-identity-js/master/dist/amazon-cognito-identity.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.6.10/aws-sdk.js'></script>
+  
+<script >
+const poolId = 'us-east-2_b4ghQFC9D';
+const appClientId = '7g9tqt5tkbbj5g2dhcofdu3u5s';
+const awsRegion = 'us-east-2';
+
+AWSCognito.config.region = awsRegion;
+const userPool = new AWSCognito
+  .CognitoIdentityServiceProvider
+  .CognitoUserPool({
+    UserPoolId : poolId,
+    ClientId : appClientId    
+});
+
+var appVM = new Vue({
+  el: '#app',
+  data: {
+    newUserName: '',
+    newUserPassword: '',
+    newUserEmail: '',
+    authUserName: 'demo@demo.com',
+    authPassword: 'demo1234',
+    idToken: null,
+    accessToken: null,
+    apiUrl: 'https://up24v3woea.execute-api.us-east-1.amazonaws.com/dev/tasks',
+    apiResponse: ''
+  },
+  created: function() {
+  },
+  computed: {
+    decodedIdToken: function() {
+      if (this.idToken)
+        return atob(this.idToken.split(".")[1]);
+    }
+  },
+  methods: {
+    authUser: function() {
+      var cognitoUser = new AWSCognito
+        .CognitoIdentityServiceProvider
+        .CognitoUser({
+          Username : this.authUserName,
+          Pool : userPool  
+        });
+
+      var authenticationDetails = new AWSCognito
+        .CognitoIdentityServiceProvider
+        .AuthenticationDetails({
+          Username : this.authUserName,
+          Password : this.authPassword,     
+        });
+      
+      cognitoUser.authenticateUser(authenticationDetails, {
+        onSuccess: result => {
+          this.idToken = result.getIdToken().getJwtToken();
+          this.accessToken = result.getAccessToken().getJwtToken();
+        },
+        onFailure: function(err) {
+          alert(err);
+        },
+        newPasswordRequired: (userAttributes, requiredAttributes) => {
+          var newPassword = prompt('New paswword', '');
+          cognitoUser.completeNewPasswordChallenge(
+            newPassword, {}, this);
+        }    
+      });
+    },
+    newUser: function() {
+      var attributeList = [];
+      var attributeEmail = new AWSCognito
+      .CognitoIdentityServiceProvider
+      .CognitoUserAttribute({
+        Name : 'email',
+        Value : this.newUserEmail        
+      });
+      attributeList.push(attributeEmail);
+
+      userPool.signUp(this.newUserName, this.newUserPassword, 
+        attributeList, null, function(err, result) {
+        if (err) {
+          alert(err);
+          return;
+        }
+        cognitoUser = result.user;
+        alert('user name is ' + cognitoUser.getUsername());
+      });
+    },
+    invokeAPI: function() {
+      // *** make sure lambda function also has allowOrigin: *
+      // *** in addition to option method on api gateway
+      // *** after change API gateway setting, redeploy it
+      $.ajax({
+        method: "GET",
+        url: this.apiUrl,
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        headers: {
+            "Authorization": this.idToken
+        },
+        success: data => {
+          this.apiResponse = data;
+        },
+        error: function(e) {
+          alert("failed" + JSON.stringify(e));
+        }
+      });
+    }
+  }
+});
+</script>
+</body>
+
+</html>

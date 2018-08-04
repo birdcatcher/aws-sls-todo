@@ -59,6 +59,7 @@ package:
     - options.yml
     - README.md
     - LICENSE
+    - web/*
 
 functions:
   tasks_get:
@@ -68,12 +69,12 @@ functions:
           path: tasks
           method: get
           cors: true
-          # authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.options.userPoolArn}
       - http:
           path: tasks/{id}
           method: get
           cors: true
-          # authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.options.userPoolArn}
   tasks_post:
     handler: handler.tasks_post
     events:
@@ -81,7 +82,7 @@ functions:
           path: tasks
           method: post
           cors: true
-          # authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.options.userPoolArn}
   tasks_delete:
     handler: handler.tasks_delete
     events:
@@ -89,7 +90,7 @@ functions:
           path: tasks/{id}
           method: delete
           cors: true
-          # authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.options.userPoolArn}
   tasks_put:
     handler: handler.tasks_put
     events:
@@ -97,7 +98,7 @@ functions:
           path: tasks/{id}
           method: put
           cors: true
-          # authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.options.userPoolArn}
 
 # you can add CloudFormation resource templates here
 resources:
