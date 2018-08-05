@@ -48,6 +48,17 @@
       <button @click="postAPI()">POST</button>
       <p>{{ postResponse }}</p>
     </div>
+    <div>
+      <input type="text" placeholder="PUT URL" size="70" v-model="putUrl"/>
+      <input type="text" placeholder="PUT DATA" size="70" v-model="putData"/>
+      <button @click="putAPI()">PUT</button>
+      <p>{{ putResponse }}</p>
+    </div>
+    <div>
+      <input type="text" placeholder="DEL URL" size="70" v-model="delUrl"/>
+      <button @click="delAPI()">DEL</button>
+      <p>{{ delResponse }}</p>
+    </div>
   </div>
 </div>
 
@@ -84,6 +95,11 @@ var appVM = new Vue({
     postUrl: 'https://y8yktcamc3.execute-api.us-east-1.amazonaws.com/dev/tasks',
     postData: '',
     postResponse: '',
+    putUrl: 'https://y8yktcamc3.execute-api.us-east-1.amazonaws.com/dev/tasks/',
+    putData: '',
+    putResponse: '',
+    delUrl: 'https://y8yktcamc3.execute-api.us-east-1.amazonaws.com/dev/tasks/',
+    delResponse: ''
   },
   created: function() {
   },
@@ -181,6 +197,49 @@ var appVM = new Vue({
         data: this.postData,
         success: data => {
           this.postResponse = data;
+        },
+        error: function(e) {
+          alert("failed" + JSON.stringify(e));
+        }
+      });
+    },
+    putAPI: function() {
+      // *** make sure lambda function also has allowOrigin: *
+      // *** in addition to option method on api gateway
+      // *** after change API gateway setting, redeploy it
+      $.ajax({
+        method: "PUT",
+        url: this.putUrl,
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        headers: {
+            "Authorization": this.idToken
+        },
+        data: this.putData,
+        success: data => {
+          this.putResponse = data;
+        },
+        error: function(e) {
+          alert("failed" + JSON.stringify(e));
+        }
+      });
+    },
+    delAPI: function() {
+      // *** make sure lambda function also has allowOrigin: *
+      // *** in addition to option method on api gateway
+      // *** after change API gateway setting, redeploy it
+      $.ajax({
+        method: "DELETE",
+        url: this.delUrl,
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        headers: {
+            "Authorization": this.idToken
+        },
+        success: data => {
+          this.delResponse = data;
         },
         error: function(e) {
           alert("failed" + JSON.stringify(e));

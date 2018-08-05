@@ -19,7 +19,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs6.10
+  runtime: nodejs8.10
 
 # you can overwrite defaults here
 #  stage: dev
@@ -44,6 +44,7 @@ provider:
         - "dynamodb:Query"
         - "dynamodb:GetItem"
         - "dynamodb:PutItem"
+        - "dynamodb:UpdateItem"
         - "dynamodb:DeleteItem"
       Resource:
         - ${self:custom.options.tableArn}
