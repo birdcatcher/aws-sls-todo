@@ -38,19 +38,23 @@
   <div>
     <h4>API Gateway (protected by UserPool authorization)</h4>
     <div>
-      <input type="text" placeholder="API URL" size="70" v-model="apiUrl"/>
-      <button @click="invokeAPI()">Submit</button>
-      <p>{{ apiResponse }}</p>
+      <input type="text" placeholder="GET URL" size="70" v-model="getUrl"/>
+      <button @click="getAPI()">GET</button>
+      <p>{{ getResponse }}</p>
+    </div>
+    <div>
+      <input type="text" placeholder="POST URL" size="70" v-model="postUrl"/>
+      <input type="text" placeholder="POST DATA" size="70" v-model="postData"/>
+      <button @click="postAPI()">POST</button>
+      <p>{{ postResponse }}</p>
     </div>
   </div>
 </div>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.8/vue.js"></script>
-<script src='https://rawgit.com/bitwiseshiftleft/sjcl/master/sjcl.js'></script>
 <script src='https://cdn.rawgit.com/aws/amazon-cognito-identity-js/e1193e2a/dist/aws-cognito-sdk.js'></script>
 <script src='https://rawgit.com/aws/amazon-cognito-identity-js/master/dist/amazon-cognito-identity.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.6.10/aws-sdk.js'></script>
   
 <script >
 const poolId = 'us-east-2_b4ghQFC9D';
@@ -75,8 +79,11 @@ var appVM = new Vue({
     authPassword: 'demo1234',
     idToken: null,
     accessToken: null,
-    apiUrl: 'https://up24v3woea.execute-api.us-east-1.amazonaws.com/dev/tasks',
-    apiResponse: ''
+    getUrl: 'https://y8yktcamc3.execute-api.us-east-1.amazonaws.com/dev/tasks',
+    getResponse: '',
+    postUrl: 'https://y8yktcamc3.execute-api.us-east-1.amazonaws.com/dev/tasks',
+    postData: '',
+    postResponse: '',
   },
   created: function() {
   },
@@ -137,13 +144,13 @@ var appVM = new Vue({
         alert('user name is ' + cognitoUser.getUsername());
       });
     },
-    invokeAPI: function() {
+    getAPI: function() {
       // *** make sure lambda function also has allowOrigin: *
       // *** in addition to option method on api gateway
       // *** after change API gateway setting, redeploy it
       $.ajax({
         method: "GET",
-        url: this.apiUrl,
+        url: this.getUrl,
         dataType: 'json',
         contentType: "application/json",
         crossDomain: true,
@@ -151,7 +158,29 @@ var appVM = new Vue({
             "Authorization": this.idToken
         },
         success: data => {
-          this.apiResponse = data;
+          this.getResponse = data;
+        },
+        error: function(e) {
+          alert("failed" + JSON.stringify(e));
+        }
+      });
+    },
+    postAPI: function() {
+      // *** make sure lambda function also has allowOrigin: *
+      // *** in addition to option method on api gateway
+      // *** after change API gateway setting, redeploy it
+      $.ajax({
+        method: "POST",
+        url: this.postUrl,
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        headers: {
+            "Authorization": this.idToken
+        },
+        data: this.postData,
+        success: data => {
+          this.postResponse = data;
         },
         error: function(e) {
           alert("failed" + JSON.stringify(e));
