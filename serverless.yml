@@ -9,21 +9,15 @@ service: todo
 # Check out our docs for more details
 # frameworkVersion: "=X.X.X"
 
-# extract stage either from command line or in this file
+# get option variables from options.js file
 custom:
-  stage: ${opt:stage, self:provider.stage}
-  region: ${opt:region, self:provider.region}
-
-# get option variables from options.yml file
-  options: ${file(options.yml):${self:custom.stage}}
+  options: ${file(options.js)}
 
 provider:
   name: aws
   runtime: nodejs8.10
-
-# you can overwrite defaults here
-#  stage: dev
-#  region: us-east-1
+  stage: ${self:custom.options.stage}
+  region: ${self:custom.options.region}
 
 # get env variables from env.yml file
   # environment: ${file(env.yml):${self:custom.stage}}
@@ -64,6 +58,13 @@ package:
     - web/*
 
 functions:
+  debug:
+    handler: handler.debug
+    events:
+      - http:
+          path: debug
+          method: any
+          cors: true
   tasks_get:
     handler: handler.tasks_get
     events:
@@ -105,10 +106,6 @@ functions:
 # you can add CloudFormation resource templates here
 resources:
   Resources:
-    bucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: ${self:custom.options.bucketName}
     table:
       Type: AWS::DynamoDB::Table
       Properties:
