@@ -37,7 +37,11 @@ module.exports = () => {
   return options[stage];
 };
 
+// used for testing url
 console.log("stage="+stage);
 console.log("region="+options[stage].region);
 console.log("poolId="+options[stage].poolId);
 console.log("appClientId="+options[stage].appClientId);
+
+console.log("resource=debug");
+console.log("resource=tasks");
