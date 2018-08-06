@@ -11,7 +11,7 @@ service: todo
 
 # get option variables from options.js file
 custom:
-  options: ${file(options.js)}
+  options: ${file(config.js)}
 
 provider:
   name: aws
