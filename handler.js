@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const AWS = require('aws-sdk');
 const client = new AWS.DynamoDB.DocumentClient();
 
+const tableName = process.env.tableName;   
+
 module.exports.debug = async (event, context, callback) => {
   callback(null, json({
     event: event,
@@ -14,20 +16,20 @@ module.exports.debug = async (event, context, callback) => {
 module.exports.tasks_get = async (event, context, callback) => {
   var response = {};
 
-  if (event.pathParameters && event.pathParameters.id) {
+  if (event.pathParameters && getId(event)) {
     response = await client.get({
-      TableName: 'aws-sls-todo-dev',
+      TableName: tableName,
       Key: {
-        'uid': event["requestContext"]["authorizer"]["claims"]["cognito:username"],
-        'id': event.pathParameters.id
+        'uid': getUid(event),
+        'id': getId(event)
       }
     }).promise();
   } else {
     response = await client.query({
-      TableName: 'aws-sls-todo-dev',
+      TableName: tableName,
       KeyConditionExpression: 'uid = :uid',
       ExpressionAttributeValues: {
-        ':uid': event["requestContext"]["authorizer"]["claims"]["cognito:username"]
+        ':uid': getUid(event)
       }    
     }).promise();
   };
@@ -40,14 +42,16 @@ module.exports.tasks_post = async (event, context, callback) => {
   var response = {};
 
   if (event.body) request = JSON.parse(event.body);
-  if (request.name) {
+  if (request.title && request.detail && request.due) {
     response = await client.put({
-      TableName: 'aws-sls-todo-dev',
+      TableName: tableName,
       Item: {
-          'uid': event["requestContext"]["authorizer"]["claims"]["cognito:username"],
+          'uid': getUid(event),
           'id': crypto.randomBytes(16).toString("hex"),
-          'name': request.name,
-          'status': 'pending'
+          'title': request.title,
+          'detail': request.detail,
+          'due': request.due,
+          'status': false
       },
       ReturnValues: 'ALL_OLD'
     }).promise();
@@ -60,14 +64,14 @@ module.exports.tasks_put = async (event, context, callback) => {
   var request = {};
   var response = {};
 
-  if (event.pathParameters && event.pathParameters.id) {
+  if (event.pathParameters && getId(event)) {
     if (event.body) request = JSON.parse(event.body);
     if (request.status) {
       response = await client.update({
-        TableName: 'aws-sls-todo-dev',
+        TableName: tableName,
         Key: {
-          'uid': event["requestContext"]["authorizer"]["claims"]["cognito:username"],
-          'id': event.pathParameters.id
+          'uid': getUid(event),
+          'id': getId(event)
         },
         UpdateExpression: "SET #status = :status",
         ExpressionAttributeNames: {
@@ -87,18 +91,26 @@ module.exports.tasks_put = async (event, context, callback) => {
 module.exports.tasks_delete = async (event, context, callback) => {
   var response = {};
 
-  if (event.pathParameters && event.pathParameters.id) {
+  if (event.pathParameters && getId(event)) {
     response = await client.delete({
-      TableName: 'aws-sls-todo-dev',
+      TableName: tableName,
       Key: {
-        'uid': event["requestContext"]["authorizer"]["claims"]["cognito:username"],
-        'id': event.pathParameters.id
+        'uid': getUid(event),
+        'id': getId(event)
       },
       ReturnValues: 'ALL_OLD'
     }).promise();
   };
 
   callback(null, json(response));
+}
+
+function getUid(event) {
+ return event["requestContext"]["authorizer"]["claims"]["cognito:username"];
+}
+
+function getId(event) {
+  return event.pathParameters.id;
 }
 
 function json(data) {

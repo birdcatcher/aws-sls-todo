@@ -1,6 +1,6 @@
 const stage = "dev";
 
-const options = {
+const configs = {
 	dev: {
 		stage: "dev",
 		region: "us-east-1",
@@ -34,14 +34,14 @@ const options = {
 }
 
 module.exports = () => {
-  return options[stage];
+  return configs[stage];
 };
 
 // used for testing url
 console.log("stage="+stage);
-console.log("region="+options[stage].region);
-console.log("poolId="+options[stage].poolId);
-console.log("appClientId="+options[stage].appClientId);
+console.log("region="+configs[stage].region);
+console.log("poolId="+configs[stage].poolId);
+console.log("appClientId="+configs[stage].appClientId);
 
 console.log("resource=debug");
 console.log("resource=tasks");

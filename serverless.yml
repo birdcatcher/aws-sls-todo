@@ -11,13 +11,15 @@ service: todo
 
 # get option variables from options.js file
 custom:
-  options: ${file(config.js)}
+  configs: ${file(config.js)}
 
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: ${self:custom.options.stage}
-  region: ${self:custom.options.region}
+  stage: ${self:custom.configs.stage}
+  region: ${self:custom.configs.region}
+  environment:
+    tableName: ${self:custom.configs.tableName}
 
 # get env variables from env.yml file
   # environment: ${file(env.yml):${self:custom.stage}}
@@ -31,8 +33,8 @@ provider:
         - "s3:PutObject"
         - "s3:DeleteObject"
       Resource:
-        - ${self:custom.options.bucketArn}
-        - ${self:custom.options.bucketArn}/*
+        - ${self:custom.configs.bucketArn}
+        - ${self:custom.configs.bucketArn}/*
     - Effect: "Allow"
       Action:
         - "dynamodb:Query"
@@ -41,8 +43,8 @@ provider:
         - "dynamodb:UpdateItem"
         - "dynamodb:DeleteItem"
       Resource:
-        - ${self:custom.options.tableArn}
-        - ${self:custom.options.tableArn}/*
+        - ${self:custom.configs.tableArn}
+        - ${self:custom.configs.tableArn}/*
 
 # OR use existing preconfig role
 # role: ${self:custom.options.lambdaRoleArn}
@@ -52,7 +54,7 @@ package:
   exclude:
     - .git
     - .gitignore
-    - options.yml
+    - configs.yml
     - README.md
     - LICENSE
     - web/*
@@ -72,12 +74,12 @@ functions:
           path: tasks
           method: get
           cors: true
-          authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.configs.userPoolArn}
       - http:
           path: tasks/{id}
           method: get
           cors: true
-          authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.configs.userPoolArn}
   tasks_post:
     handler: handler.tasks_post
     events:
@@ -85,7 +87,7 @@ functions:
           path: tasks
           method: post
           cors: true
-          authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.configs.userPoolArn}
   tasks_delete:
     handler: handler.tasks_delete
     events:
@@ -93,7 +95,7 @@ functions:
           path: tasks/{id}
           method: delete
           cors: true
-          authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.configs.userPoolArn}
   tasks_put:
     handler: handler.tasks_put
     events:
@@ -101,7 +103,7 @@ functions:
           path: tasks/{id}
           method: put
           cors: true
-          authorizer: ${self:custom.options.userPoolArn}
+          authorizer: ${self:custom.configs.userPoolArn}
 
 # you can add CloudFormation resource templates here
 resources:
@@ -109,7 +111,7 @@ resources:
     table:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:custom.options.tableName}
+        TableName: ${self:custom.configs.tableName}
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
@@ -121,5 +123,5 @@ resources:
           - AttributeName: id
             KeyType: RANGE
         ProvisionedThroughput:
-          ReadCapacityUnits: ${self:custom.options.tableReadUnits}
-          WriteCapacityUnits: ${self:custom.options.tableWriteUnits}
+          ReadCapacityUnits: ${self:custom.configs.tableReadUnits}
+          WriteCapacityUnits: ${self:custom.configs.tableWriteUnits}
