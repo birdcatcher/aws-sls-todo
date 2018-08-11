@@ -58,6 +58,8 @@ package:
     - README.md
     - LICENSE
     - web/*
+    - test.sh
+    - client.js
 
 functions:
   debug:
