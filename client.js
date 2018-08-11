@@ -46,6 +46,7 @@ exec('sls info -v',
 
 		// move web client to s3
 		if (process.argv[2] == 's3') {
+			console.log('aws s3 sync web s3://my-bucket --acl public-read')
 			// console.log('aws s3api put-object --bucket aws-sls-todo-dev --key index.html --body web/index.html --acl public-read --content-type text/html')
 			// create bucket - aws s3 mb s3://bucket-name
 			// remove bucket - aws s3 rb s3://bucket-name --force
