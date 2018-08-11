@@ -36,12 +36,3 @@ const configs = {
 module.exports = () => {
   return configs[stage];
 };
-
-// used for testing url
-console.log("stage="+stage);
-console.log("region="+configs[stage].region);
-console.log("poolId="+configs[stage].poolId);
-console.log("appClientId="+configs[stage].appClientId);
-
-console.log("resource=debug");
-console.log("resource=tasks");
