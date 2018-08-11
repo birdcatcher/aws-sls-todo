@@ -1,0 +1,130 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" type="image/x-icon" href="https://static.codepen.io/assets/favicon/favicon-8ea04875e70c4b0bb41da869e81236e54394d63638a1ef12fa558a4a835f1164.ico" />
+  <link rel="mask-icon" type="" href="https://static.codepen.io/assets/favicon/logo-pin-f2d2b6d2c61838f7e76325261b7195c27224080bc099486ddd6dccb469b8e8e6.svg" color="#111" />
+  <title>CodePen - Vuetify - App - ToDo</title>
+  
+  <style>
+    @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons");
+    @import url("https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css");
+  </style>
+</head>
+
+<body translate="no" >
+  <div id="app">
+  <v-app dark>
+    <Auth ref="auth" title="ToDo" :cognito="cognito" @loggedin="loggedIn($event)" @loggedout="loggedOut()"></Auth>
+    <v-content>
+      <v-container>
+        <v-layout>
+          <v-flex xs12>
+            <Tasks :tasks="tasks" v-show="idToken" @change="taskChanged($event)"></Tasks>
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </v-content>
+  </v-app>
+</div>
+
+<!-- jQuery -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<!-- load vue.js -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!-- load vuetify.js -->
+<script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+
+<!-- load AWS Cognito -->
+<script src='https://cdn.rawgit.com/aws/amazon-cognito-identity-js/e1193e2a/dist/aws-cognito-sdk.js'></script>
+<script src='https://rawgit.com/aws/amazon-cognito-identity-js/master/dist/amazon-cognito-identity.min.js'></script>
+
+<!-- load WebAppConfig -->
+<script src="WebAppConfig.js"></script>
+
+<!-- load auth component -->
+<script src="Auth.js"></script>
+
+<!-- load tasks component -->
+<script src="Tasks.js"></script>
+  
+<script >
+  var vm = new Vue({
+  el: '#app',
+  data: {
+    cognito: {
+      poolId: WebAppConfig.poolId,
+      appClientId: WebAppConfig.appClientId
+    },
+    idToken: null,
+    tasks: []
+  },
+  created() {
+    // Not ready to load data
+  },
+  methods: {
+    loggedOut() {
+      this.idToken = null;
+      this.tasks.splice(0, this.tasks.length);
+    },
+    loggedIn(token) {
+      this.idToken = token;
+      // alert(this.idToken);
+
+      // load data
+      $.ajax({
+        method: "GET",
+        url: WebAppConfig.urls['tasks'],
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        headers: {
+          "Authorization": this.idToken
+        },
+        success: data => {
+          // alert(JSON.stringify(data, null, 2));
+          this.tasks.splice(0, 0, ...data.Items);
+        },
+        error: function(e) {
+          alert("Failed\n" + JSON.stringify(e, null, 2));
+        }
+      });
+      
+      // fake data
+      // this.tasks.splice(0, 0, 
+        // {id: "100", title: "Shopping", detail: "Buy back-to-school stuff.", due: "08/15/2018", status: true}
+      // );      
+    },
+    taskChanged(newVal) {
+      // alert(JSON.stringify(newVal, null, 2));
+      
+      // update server
+      // load data
+      $.ajax({
+        method: "PUT",
+        url: WebAppConfig.urls['tasks']+"/"+newVal.id,
+        dataType: 'json',
+        contentType: "application/json",
+        crossDomain: true,
+        data: JSON.stringify(newVal),
+        headers: {
+          "Authorization": this.idToken
+        },
+        success: data => {
+          // alert(JSON.stringify(data, null, 2));
+          this.tasks.splice(0, 0, ...data.Items);
+        },
+        error: function(e) {
+          alert("Failed\n" + JSON.stringify(e, null, 2));
+        }
+      });
+    }
+  }
+});
+</script>
+
+</body>
+</html>
+ 

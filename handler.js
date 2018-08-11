@@ -66,7 +66,7 @@ module.exports.tasks_put = async (event, context, callback) => {
 
   if (event.pathParameters && getId(event)) {
     if (event.body) request = JSON.parse(event.body);
-    if (request.status) {
+    if ('status' in request) {
       response = await client.update({
         TableName: tableName,
         Key: {
