@@ -1,3 +1,5 @@
+.DS_Store
+
 # Serverless build
 .serverless/
 
@@ -62,5 +64,3 @@ typings/
 
 # next.js build output
 .next
-
-.DS_Store
