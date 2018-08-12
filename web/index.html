@@ -17,7 +17,7 @@
 <body translate="no" >
   <div id="app">
   <v-app dark>
-    <Auth ref="auth" title="ToDo" :cognito="cognito" @loggedin="loggedIn($event)" @loggedout="loggedOut()"></Auth>
+    <Auth ref="auth" :value="!idToken" title="ToDo" :cognito="cognito" @loggedin="loggedIn($event)" @loggedout="loggedOut()"></Auth>
     <v-content>
       <v-container>
         <v-layout>

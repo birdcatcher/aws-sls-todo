@@ -7,19 +7,13 @@ Vue.component(
   // component can be register under different tag name
   {
     // component data MUST be function
+    props: ["cognito", "value"],
     data() {
       return {
-        dialog: false,
+        dialog: this.value,
         email: "demo@demo.com",
         password: "demo1234",
         idToken: null
-      }
-    },
-    props: ["title", "cognito"],
-    computed: {
-      name: function() {
-        if (this.idToken)
-          return JSON.parse(atob(this.idToken.split(".")[1])).email;       
       }
     },
     methods: {  
@@ -74,14 +68,6 @@ Vue.component(
     // template: document.getElementById('component').innerHTML
     // TODO: copy template into string for self contained component
     template: `
-  <v-toolbar app prominent>
-    <v-toolbar-title>{{ title }}</v-toolbar-title>
-    <v-spacer></v-spacer>
-    <v-toolbar-title v-show="idToken" class="subheading grey--text font-italic">{{ name }}</v-toolbar-title>
-    <v-toolbar-items>
-      <v-btn flat v-show="!idToken" @click="dialog=true">Login</v-btn>
-      <v-btn flat v-show="idToken" @click="logout()">Logout</v-btn>
-    </v-toolbar-items>
     <v-dialog v-model="dialog" max-width="600">
       <v-card>
         <v-card-title class="headline">Login</v-card-title>
@@ -104,7 +90,6 @@ Vue.component(
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-toolbar>    
     `
   }
   // component object code end
