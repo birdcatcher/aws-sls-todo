@@ -30,8 +30,8 @@
   </v-app>
 </div>
 
-<!-- jQuery -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<!-- axios -->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <!-- load vue.js -->
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <!-- load vuetify.js -->
@@ -51,7 +51,7 @@
 <script src="Tasks.js"></script>
   
 <script >
-  var vm = new Vue({
+var vm = new Vue({
   el: '#app',
   data: {
     cognito: {
@@ -69,57 +69,24 @@
       this.idToken = null;
       this.tasks.splice(0, this.tasks.length);
     },
-    loggedIn(token) {
+    loggedIn: async function(token) {
       this.idToken = token;
-      // alert(this.idToken);
-
-      // load data
-      $.ajax({
-        method: "GET",
-        url: WebAppConfig.urls['tasks'],
-        dataType: 'json',
-        contentType: "application/json",
-        crossDomain: true,
-        headers: {
-          "Authorization": this.idToken
-        },
-        success: data => {
-          // alert(JSON.stringify(data, null, 2));
-          this.tasks.splice(0, 0, ...data.Items);
-        },
-        error: function(e) {
-          alert("Failed\n" + JSON.stringify(e, null, 2));
-        }
-      });
+      axios.defaults.baseURL = WebAppConfig.urls['tasks'];
+      axios.defaults.headers.common['Authorization'] = 
+        this.idToken;
       
-      // fake data
+      let resp = await axios.get('');
+      this.tasks.splice(0, 0, ...resp.data.Items);
+
       // this.tasks.splice(0, 0, 
         // {id: "100", title: "Shopping", detail: "Buy back-to-school stuff.", due: "08/15/2018", status: true}
       // );      
     },
-    taskChanged(newVal) {
+    taskChanged: async function(newVal) {
       // alert(JSON.stringify(newVal, null, 2));
       
       // update server
-      // load data
-      $.ajax({
-        method: "PUT",
-        url: WebAppConfig.urls['tasks']+"/"+newVal.id,
-        dataType: 'json',
-        contentType: "application/json",
-        crossDomain: true,
-        data: JSON.stringify(newVal),
-        headers: {
-          "Authorization": this.idToken
-        },
-        success: data => {
-          // alert(JSON.stringify(data, null, 2));
-          this.tasks.splice(0, 0, ...data.Items);
-        },
-        error: function(e) {
-          alert("Failed\n" + JSON.stringify(e, null, 2));
-        }
-      });
+      let data = await axios.put('/'+newVal.id, newVal);
     }
   }
 });
