@@ -11,7 +11,7 @@ Vue.component(
     data() {
       return {
         dialog: this.value,
-        email: "demo@demo.com",
+        username: "demo",
         password: "demo1234",
         idToken: null
       }
@@ -32,14 +32,14 @@ Vue.component(
         var cognitoUser = new AWSCognito
         .CognitoIdentityServiceProvider
         .CognitoUser({
-          Username : this.email,
+          Username : this.username,
           Pool : userPool
         });
 
         var authenticationDetails = new AWSCognito
         .CognitoIdentityServiceProvider
         .AuthenticationDetails({
-          Username : this.email,
+          Username : this.username,
           Password : this.password,     
         });
         cognitoUser.authenticateUser(
@@ -75,7 +75,7 @@ Vue.component(
             <v-container grid-list-md>
               <v-layout wrap>
                 <v-flex xs12>
-                  <v-text-field  v-model="email" label="Email"required></v-text-field>
+                  <v-text-field  v-model="username" label="Username"required></v-text-field>
                 </v-flex>
                 <v-flex xs12>
                   <v-text-field  v-model="password" label="Password" type="password" required></v-text-field>
