@@ -106,7 +106,7 @@ module.exports.tasks_delete = async (event, context, callback) => {
 }
 
 function getUid(event) {
- return event["requestContext"]["authorizer"]["claims"]["cognito:username"];
+ return event["requestContext"]["authorizer"]["claims"]["username"];
 }
 
 function getId(event) {
