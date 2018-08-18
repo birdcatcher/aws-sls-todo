@@ -70,21 +70,28 @@ module.exports.tasks_put = async (event, context, callback) => {
 
   if (event.pathParameters && getId(event)) {
     if (event.body) request = JSON.parse(event.body);
-    if ('status' in request) {
-      response = await client.update({
+    // if ('status' in request) {
+    //   response = await client.update({
+    //     TableName: tableName,
+    //     Key: {
+    //       'uid': getUid(event),
+    //       'id': getId(event)
+    //     },
+    //     UpdateExpression: "SET #status = :status",
+    //     ExpressionAttributeNames: {
+    //       '#status': 'status'
+    //     },
+    //     ExpressionAttributeValues: {
+    //       ':status': request.status
+    //     },
+    //     ReturnValues: 'ALL_NEW'
+    //   }).promise();
+    // }
+    if ('id' in request) {
+      response = await client.put({
         TableName: tableName,
-        Key: {
-          'uid': getUid(event),
-          'id': getId(event)
-        },
-        UpdateExpression: "SET #status = :status",
-        ExpressionAttributeNames: {
-          '#status': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':status': request.status
-        },
-        ReturnValues: 'ALL_NEW'
+        Item: request,
+        ReturnValues: 'ALL_OLD'
       }).promise();
     }
   };
