@@ -39,25 +39,29 @@ module.exports.tasks_get = async (event, context, callback) => {
 
 module.exports.tasks_post = async (event, context, callback) => {
   var request = {};
-  var response = {};
+  var data = null;
 
   if (event.body) request = JSON.parse(event.body);
   if (request.title && request.detail && request.due) {
-    response = await client.put({
+    data = {
+      'uid': getUid(event),
+      'id': crypto.randomBytes(16).toString("hex"),
+      'title': request.title,
+      'detail': request.detail,
+      'due': request.due,
+      'status': false
+    };
+    await client.put({
       TableName: tableName,
-      Item: {
-          'uid': getUid(event),
-          'id': crypto.randomBytes(16).toString("hex"),
-          'title': request.title,
-          'detail': request.detail,
-          'due': request.due,
-          'status': false
-      },
+      Item: data,
       ReturnValues: 'ALL_OLD'
     }).promise();
   };
 
-  callback(null, json(response));
+  if (data)
+    callback(null, json(data));
+  else
+    callback(null, error(500));
 };
 
 module.exports.tasks_put = async (event, context, callback) => {
@@ -121,5 +125,15 @@ function json(data) {
       "Access-Control-Allow-Origin": "*"
     },
     body: JSON.stringify(data)    
+  }
+}
+
+function error(code) {
+  return {
+    statusCode: code,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    }    
   }
 }
